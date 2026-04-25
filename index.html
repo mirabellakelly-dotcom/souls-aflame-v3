@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#3D1F6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Souls Aflame">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Souls Aflame</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --purple:#6B3FA0;--purple-light:#9B6FD0;--purple-pale:#EDE8F5;--purple-dark:#3D1F6B;
+  --gold:#C9964A;--green:#2E9E6B;--green-pale:#E8F5EE;--red:#D94F4F;--red-pale:#FDF0F0;
+  --blue:#3A7BD5;--blue-pale:#EAF1FB;
+  --bg:#F5F3FA;--card:#FDFCFF;--card2:#F0EDF8;
+  --text:#1A1025;--text-soft:#7A6895;--border:#E2D9F3;
+  --radius:16px;--shadow:0 2px 16px rgba(107,63,160,0.10);
+  --topbar:#3D1F6B;
+}
+body.dark{
+  --bg:#12091E;--card:#1E1230;--card2:#261840;
+  --text:#F0EAF8;--text-soft:#9B85C0;--border:#3A2460;
+  --topbar:#1A0D2E;--shadow:0 2px 16px rgba(0,0,0,0.4);
+  --purple-pale:#2A1850;--green-pale:#0D2E1F;--red-pale:#2E0F0F;--blue-pale:#0D1E38;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:90px;overscroll-behavior:none;transition:background 0.3s,color 0.3s;}
+
+/* TOPBAR */
+.topbar{background:var(--topbar);padding:env(safe-area-inset-top,0px) 16px 12px;padding-top:calc(env(safe-area-inset-top,0px) + 16px);position:sticky;top:0;z-index:100;transition:background 0.3s;}
+.topbar-row{display:flex;align-items:center;justify-content:space-between;}
+.topbar-title{font-family:'Playfair Display',serif;font-size:18px;color:white;}
+.topbar-sub{font-size:10px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+.topbar-btn{background:rgba(255,255,255,0.12);border:none;color:white;border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;transition:background 0.2s;}
+.topbar-btn:active{background:rgba(255,255,255,0.22);}
+
+/* SETTINGS PANEL */
+.settings-panel{background:var(--topbar);border-top:1px solid rgba(255,255,255,0.08);overflow:hidden;max-height:0;transition:max-height 0.3s ease,padding 0.3s ease;padding:0 16px;}
+.settings-panel.open{max-height:400px;padding:14px 16px;}
+.settings-section{margin-bottom:12px;}
+.settings-label{font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+.settings-input{width:100%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:9px 12px;color:white;font-family:'Outfit',sans-serif;font-size:14px;outline:none;}
+.settings-input::placeholder{color:rgba(255,255,255,0.35);}
+.settings-row{display:flex;align-items:center;justify-content:space-between;}
+.settings-row-label{font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;}
+.toggle-switch{position:relative;width:44px;height:24px;cursor:pointer;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.2);border-radius:24px;transition:0.3s;}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;}
+.toggle-switch input:checked+.toggle-slider{background:var(--green);}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px);}
+.shortcuts{display:flex;gap:8px;margin-top:4px;}
+.shortcut-btn{flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 4px;color:white;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-align:center;transition:background 0.2s;}
+.shortcut-btn:active{background:rgba(255,255,255,0.2);}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -4px 20px rgba(107,63,160,0.08);padding-bottom:env(safe-area-inset-bottom,0px);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 8px;cursor:pointer;border:none;background:none;gap:3px;transition:all 0.2s;}
+.nav-icon{font-size:18px;line-height:1;}
+.nav-label{font-size:9px;font-weight:600;letter-spacing:0.5px;color:var(--text-soft);}
+.nav-item.active .nav-label{color:var(--purple);}
+.nav-item.active .nav-icon{transform:translateY(-2px);}
+
+/* PAGES */
+.page{display:none;padding:16px;animation:fadeIn 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;border:1px solid var(--border);}
+.card2{background:var(--card2);}
+.section-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--purple-dark);margin-bottom:4px;}
+body.dark .section-title{color:var(--purple-light);}
+.section-sub{font-size:12px;color:var(--text-soft);margin-bottom:16px;}
+
+/* STAT PILLS */
+.stat-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.stat-pill{flex:1;min-width:70px;background:var(--purple-pale);border-radius:12px;padding:11px 8px;text-align:center;}
+.stat-pill.green{background:var(--green-pale);}
+.stat-pill.red{background:var(--red-pale);}
+.stat-pill.blue{background:var(--blue-pale);}
+.stat-pill.gold{background:#FDF5E8;}
+body.dark .stat-pill.gold{background:#2A1E0A;}
+.stat-num{font-size:24px;font-weight:700;color:var(--purple);line-height:1;}
+.stat-pill.green .stat-num{color:var(--green);}
+.stat-pill.red .stat-num{color:var(--red);}
+.stat-pill.blue .stat-num{color:var(--blue);}
+.stat-pill.gold .stat-num{color:var(--gold);}
+.stat-lbl{font-size:9px;color:var(--text-soft);margin-top:3px;letter-spacing:0.3px;font-weight:600;text-transform:uppercase;}
+
+/* FORMS */
+.form-group{margin-bottom:12px;}
+.form-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-soft);margin-bottom:5px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:15px;color:var(--text);background:var(--bg);outline:none;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--purple-light);background:var(--card);}
+.form-textarea{resize:vertical;min-height:70px;}
+.form-row{display:flex;gap:10px;}
+.form-row .form-group{flex:1;}
+
+/* BUTTONS */
+.btn{width:100%;padding:13px;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.18s;letter-spacing:0.3px;}
+.btn-primary{background:var(--purple);color:white;}
+.btn-primary:active{background:var(--purple-dark);transform:scale(0.98);}
+.btn-sm{width:auto;padding:7px 14px;font-size:12px;border-radius:8px;font-weight:600;}
+.btn-ghost{background:var(--purple-pale);color:var(--purple);}
+.btn-danger{background:var(--red-pale);color:var(--red);}
+.btn-green{background:var(--green-pale);color:var(--green);}
+.btn-blue{background:var(--blue-pale);color:var(--blue);}
+.btn-gold{background:#FDF5E8;color:var(--gold);}
+body.dark .btn-gold{background:#2A1E0A;}
+.btn-pdf{background:var(--red-pale);color:var(--red);display:flex;align-items:center;gap:6px;justify-content:center;}
+
+/* LIST */
+.list-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:9px;}
+.list-item-name{font-weight:600;font-size:15px;color:var(--text);}
+.list-item-sub{font-size:12px;color:var(--text-soft);margin-top:2px;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-green{background:var(--green-pale);color:var(--green);}
+.badge-red{background:var(--red-pale);color:var(--red);}
+.badge-purple{background:var(--purple-pale);color:var(--purple);}
+.badge-gold{background:#FDF5E8;color:var(--gold);}
+body.dark .badge-gold{background:#2A1E0A;}
+.badge-blue{background:var(--blue-pale);color:var(--blue);}
+.badge-grey{background:var(--card2);color:var(--text-soft);}
+
+/* MONTH GRID */
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px;}
+.month-btn{padding:9px 4px;border-radius:9px;border:1.5px solid var(--border);background:var(--card);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:var(--text-soft);cursor:pointer;transition:all 0.15s;text-align:center;}
+.month-btn.paid{background:var(--green);border-color:var(--green);color:white;}
+.month-btn.current{border-color:var(--purple);color:var(--purple);font-weight:700;}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid var(--border);border-radius:12px;font-family:'Outfit',sans-serif;font-size:14px;background:var(--card);color:var(--text);outline:none;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text-soft);}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,0,30,0.6);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--purple-dark);margin-bottom:16px;}
+body.dark .modal-title{color:var(--purple-light);}
+
+/* TABS */
+.tabs{display:flex;background:var(--purple-pale);border-radius:12px;padding:4px;margin-bottom:16px;gap:3px;overflow-x:auto;}
+.tab{flex:1;min-width:fit-content;padding:8px 6px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;background:none;color:var(--text-soft);transition:all 0.18s;white-space:nowrap;}
+.tab.active{background:var(--card);color:var(--purple);box-shadow:0 1px 6px rgba(107,63,160,0.12);}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.empty{text-align:center;padding:32px 20px;color:var(--text-soft);}
+.empty-icon{font-size:36px;margin-bottom:8px;}
+.empty-text{font-size:14px;}
+.month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px;}
+.month-nav-btn{border:none;background:none;font-size:22px;cursor:pointer;color:var(--purple);padding:2px 8px;line-height:1;}
+.month-nav-title{font-weight:700;font-size:15px;color:var(--text);text-align:center;}
+.month-nav-hint{font-size:10px;color:var(--text-soft);text-align:center;}
+.yr-table-wrap{overflow-x:auto;}
+.yr-table{width:100%;border-collapse:collapse;font-size:11px;}
+.yr-table th{background:var(--purple);color:white;padding:7px 5px;text-align:center;font-weight:700;font-size:9px;letter-spacing:0.5px;white-space:nowrap;}
+.yr-table th:first-child{text-align:left;}
+.yr-table td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--border);color:var(--text);font-size:11px;}
+.yr-table td:first-child{text-align:left;font-weight:600;color:var(--purple);font-size:10px;}
+.yr-table tr:nth-child(even) td{background:var(--card2);}
+.yr-table tr.totals-row td{background:var(--purple-pale);font-weight:700;color:var(--purple);border-top:2px solid var(--purple);}
+.yr-table tr.cur-row td{background:var(--purple-pale);}
+.contact-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;gap:10px;}
+.contact-name{font-weight:600;font-size:14px;color:var(--text);}
+.contact-sub{font-size:11px;color:var(--text-soft);margin-top:2px;}
+.contact-toggle{border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.18s;white-space:nowrap;flex-shrink:0;}
+.contact-toggle.called{background:var(--green);color:white;}
+.contact-toggle.not-called{background:var(--red-pale);color:var(--red);}
+.p-stat-section{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.p-stat-title{font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.badge-orange{background:#FFF0E0;color:#D4750A;}
+body.dark .badge-orange{background:#2A1800;color:#D4750A;}
+.month-btn.partial{background:var(--gold);border-color:var(--gold);color:white;}
+.payment-entry{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.payment-entry:last-child{border-bottom:none;}
+.payment-del{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px 6px;}
+.svc-card-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.svc-date{font-weight:700;font-size:14px;color:var(--text);}
+.svc-type{font-size:11px;color:var(--text-soft);margin-top:2px;}
+.svc-nums{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;}
+.svc-num{font-size:11px;color:var(--text-soft);}
+.svc-num span{font-weight:700;color:var(--purple);}
+.pdf-btn-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--purple-dark);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* DASHBOARD */
+.dash-greeting{font-family:'Playfair Display',serif;font-size:22px;color:var(--purple-dark);margin-bottom:2px;}
+body.dark .dash-greeting{color:var(--purple-light);}
+.dash-date{font-size:12px;color:var(--text-soft);margin-bottom:16px;}
+.dash-section-hd{font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 8px;}
+.alert-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.alert-icon{font-size:22px;flex-shrink:0;}
+.alert-title{font-weight:700;font-size:14px;color:var(--text);}
+.alert-sub{font-size:11px;color:var(--text-soft);margin-top:2px;}
+.alert-count{background:var(--red);color:white;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;margin-left:auto;flex-shrink:0;}
+.alert-count.green{background:var(--green);}
+.alert-count.gold{background:var(--gold);}
+.dash-big-num{font-size:36px;font-weight:700;color:var(--purple);line-height:1;}
+.dash-compare{font-size:11px;margin-top:4px;}
+.dash-compare.up{color:var(--green);}
+.dash-compare.down{color:var(--red);}
+.dash-compare.same{color:var(--text-soft);}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-row">
+    <div><div class="topbar-title" id="topbar-church-name">Souls Aflame</div><div class="topbar-sub" id="topbar-month"></div></div>
+    <button class="topbar-btn" onclick="toggleSettings()" id="settings-btn">⚙️</button>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-section">
+    <div class="settings-label">Church Name</div>
+    <input class="settings-input" id="church-name-input" placeholder="Enter church name" oninput="updateChurchName()">
+  </div>
+  <div class="settings-section">
+    <div class="settings-row">
+      <span class="settings-row-label">🌙 Dark Mode</span>
+      <label class="toggle-switch"><input type="checkbox" id="dark-toggle" onchange="toggleDark()"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label">Quick Navigation</div>
+    <div class="shortcuts">
+      <button class="shortcut-btn" onclick="goTo('dashboard');toggleSettings()">🏠 Home</button>
+      <button class="shortcut-btn" onclick="goTo('partnership');toggleSettings()">🤝 Partners</button>
+      <button class="shortcut-btn" onclick="goTo('members');toggleSettings()">👥 Members</button>
+      <button class="shortcut-btn" onclick="goTo('stats');toggleSettings()">📊 Stats</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ PAGE: DASHBOARD ══ -->
+<div class="page active" id="page-dashboard">
+  <div class="dash-greeting" id="dash-greeting">Good morning</div>
+  <div class="dash-date" id="dash-date"></div>
+
+  <div class="dash-section-hd">⚠️ Needs Attention</div>
+  <div id="dash-alerts"></div>
+
+  <div class="dash-section-hd">🤝 Partnership</div>
+  <div class="stat-row" id="dash-partner-row"></div>
+
+  <div class="dash-section-hd">👥 Members</div>
+  <div class="stat-row" id="dash-member-row"></div>
+
+  <div class="dash-section-hd">📊 Last Service</div>
+  <div id="dash-last-service"></div>
+
+  <div class="dash-section-hd">📈 This Month vs Last Month</div>
+  <div class="stat-row" id="dash-compare-row"></div>
+</div>
+
+<!-- ══ PAGE: PARTNERSHIP ══ -->
+<div class="page" id="page-partnership">
+  <div style="margin:4px 0 10px;"><div class="section-title">Partnership</div><div class="section-sub">Commitments & monthly redemptions</div></div>
+  <div class="tabs" id="ptabs">
+    <button class="tab active" onclick="switchPartnerTab('records',this)">Records</button>
+    <button class="tab" onclick="switchPartnerTab('monthly',this)">Monthly</button>
+    <button class="tab" onclick="switchPartnerTab('yearly',this)">Yearly</button>
+    <button class="tab" onclick="switchPartnerTab('contact',this)">Contact</button>
+  </div>
+  <div id="pt-records">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="stat-num" id="ps-total">0</div><div class="stat-lbl">Partners</div></div>
+      <div class="stat-pill green"><div class="stat-num" id="ps-paid">0</div><div class="stat-lbl">Fully Paid</div></div>
+      <div class="stat-pill gold"><div class="stat-num" id="ps-partial">0</div><div class="stat-lbl">Partial</div></div>
+      <div class="stat-pill red"><div class="stat-num" id="ps-unpaid">0</div><div class="stat-lbl">Unpaid</div></div>
+    </div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="partner-search" placeholder="Search partners..." oninput="renderPartners()"></div>
+    <div class="tabs" id="pfilter-tabs">
+      <button class="tab active" onclick="filterPartners('all',this)">All</button>
+      <button class="tab" onclick="filterPartners('paid',this)">Fully Paid</button>
+      <button class="tab" onclick="filterPartners('partial',this)">Partial</button>
+      <button class="tab" onclick="filterPartners('unpaid',this)">Unpaid</button>
+    </div>
+    <div id="partner-list"></div>
+    <button class="btn btn-primary" onclick="openModal('modal-add-partner')">+ Add Partner</button>
+  </div>
+  <div id="pt-monthly" style="display:none;">
+    <div class="month-nav"><button class="month-nav-btn" onclick="changePartnerMonth(-1)">‹</button><div><div class="month-nav-title" id="pm-label"></div><div class="month-nav-hint">Monthly stats</div></div><button class="month-nav-btn" onclick="changePartnerMonth(1)">›</button></div>
+    <div id="pm-content"></div>
+  </div>
+  <div id="pt-yearly" style="display:none;">
+    <div class="month-nav"><button class="month-nav-btn" onclick="changePartnerYear(-1)">‹</button><div><div class="month-nav-title" id="py-label"></div><div class="month-nav-hint">Yearly stats</div></div><button class="month-nav-btn" onclick="changePartnerYear(1)">›</button></div>
+    <div id="py-content"></div>
+  </div>
+  <div id="pt-contact" style="display:none;">
+    <div class="month-nav"><button class="month-nav-btn" onclick="changePartnerContactMonth(-1)">‹</button><div><div class="month-nav-title" id="pc-label"></div><div class="month-nav-hint">Tap to toggle called</div></div><button class="month-nav-btn" onclick="changePartnerContactMonth(1)">›</button></div>
+    <div class="stat-row" id="pc-stats"></div>
+    <div id="partner-contact-list"></div>
+  </div>
+</div>
+
+<!-- ══ PAGE: MEMBERS ══ -->
+<div class="page" id="page-members">
+  <div style="margin:4px 0 10px;"><div class="section-title">New Members</div><div class="section-sub">Follow-up & retention tracking</div></div>
+  <div class="tabs" id="mtabs">
+    <button class="tab active" onclick="switchMemberTab('records',this)">Records</button>
+    <button class="tab" onclick="switchMemberTab('contact',this)">Contact Tracker</button>
+  </div>
+  <div id="mt-records">
+    <div class="stat-row">
+      <div class="stat-pill"><div class="stat-num" id="ms-total">0</div><div class="stat-lbl">Total</div></div>
+      <div class="stat-pill green"><div class="stat-num" id="ms-serving">0</div><div class="stat-lbl">Serving</div></div>
+      <div class="stat-pill blue"><div class="stat-num" id="ms-member">0</div><div class="stat-lbl">Member</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-pill gold"><div class="stat-num" id="ms-returned">0</div><div class="stat-lbl">Returned</div></div>
+      <div class="stat-pill red"><div class="stat-num" id="ms-notreturned">0</div><div class="stat-lbl">Not Returned</div></div>
+      <div class="stat-pill"><div class="stat-num" id="ms-pending">0</div><div class="stat-lbl">Not Called</div></div>
+    </div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="member-search" placeholder="Search members..." oninput="renderMembers()"></div>
+    <div class="tabs" id="mfilter-tabs">
+      <button class="tab active" onclick="filterMembers('all',this)">All</button>
+      <button class="tab" onclick="filterMembers('serving',this)">Serving</button>
+      <button class="tab" onclick="filterMembers('member',this)">Member</button>
+      <button class="tab" onclick="filterMembers('returned',this)">Returned</button>
+      <button class="tab" onclick="filterMembers('not-returned',this)">Not Returned</button>
+    </div>
+    <div id="member-list"></div>
+    <button class="btn btn-primary" onclick="openModal('modal-add-member')">+ Add New Member</button>
+  </div>
+  <div id="mt-contact" style="display:none;">
+    <div class="card card2" style="padding:12px 14px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:1px;">Week of</div>
+      <div style="font-size:15px;font-weight:700;color:var(--purple);margin-top:3px;" id="mc-week-label"></div>
+      <div style="font-size:11px;color:var(--text-soft);margin-top:2px;">Resets automatically each week</div>
+    </div>
+    <div class="stat-row" id="mc-stats"></div>
+    <div id="member-contact-list"></div>
+    <div class="pdf-btn-row" style="margin-top:12px;">
+      <button class="btn btn-sm btn-pdf" onclick="exportMemberContactPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: STATISTICS ══ -->
+<div class="page" id="page-stats">
+  <div style="margin:4px 0 10px;"><div class="section-title">Statistics</div><div class="section-sub">Service records & reports</div></div>
+  <div class="tabs" id="stabs">
+    <button class="tab active" onclick="switchStatsTab('monthly',this)">Monthly</button>
+    <button class="tab" onclick="switchStatsTab('yearly',this)">Yearly</button>
+  </div>
+  <div id="st-monthly">
+    <div class="month-nav"><button class="month-nav-btn" onclick="changeStatsMonth(-1)">‹</button><div><div class="month-nav-title" id="stats-month-label"></div><div class="month-nav-hint">tap arrows to browse</div></div><button class="month-nav-btn" onclick="changeStatsMonth(1)">›</button></div>
+    <div class="stat-row">
+      <div class="stat-pill"><div class="stat-num" id="st-services">0</div><div class="stat-lbl">Services</div></div>
+      <div class="stat-pill blue"><div class="stat-num" id="st-adults">0</div><div class="stat-lbl">Adults</div></div>
+      <div class="stat-pill green"><div class="stat-num" id="st-kids">0</div><div class="stat-lbl">Kids</div></div>
+      <div class="stat-pill gold"><div class="stat-num" id="st-firsttimers">0</div><div class="stat-lbl">1st Timers</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-pill red"><div class="stat-num" id="st-visitors">0</div><div class="stat-lbl">Visitors</div></div>
+      <div class="stat-pill"><div class="stat-num" id="st-total-att">0</div><div class="stat-lbl">Total Att.</div></div>
+    </div>
+    <div class="pdf-btn-row">
+      <button class="btn btn-sm btn-pdf" onclick="exportMonthlyStatsPDF()">📄 Export PDF</button>
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-weight:700;font-size:14px;color:var(--text);">Service Records</div>
+      <button class="btn btn-sm btn-ghost" onclick="openModal('modal-add-service')">+ Log Service</button>
+    </div>
+    <div id="service-list"></div>
+  </div>
+  <div id="st-yearly" style="display:none;">
+    <div class="month-nav"><button class="month-nav-btn" onclick="changeStatsYear(-1)">‹</button><div><div class="month-nav-title" id="stats-year-label"></div><div class="month-nav-hint">yearly overview</div></div><button class="month-nav-btn" onclick="changeStatsYear(1)">›</button></div>
+    <div class="pdf-btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-sm btn-pdf" onclick="exportYearlyStatsPDF()">📄 Export PDF</button>
+    </div>
+    <div class="yr-table-wrap"><table class="yr-table" id="yearly-table"></table></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchPage('dashboard',this)"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+  <button class="nav-item" onclick="switchPage('partnership',this)"><span class="nav-icon">🤝</span><span class="nav-label">Partnership</span></button>
+  <button class="nav-item" onclick="switchPage('members',this)"><span class="nav-icon">👥</span><span class="nav-label">Members</span></button>
+  <button class="nav-item" onclick="switchPage('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Statistics</span></button>
+</nav>
+
+<!-- MODAL: ADD PARTNER -->
+<div class="modal-overlay" id="modal-add-partner" onclick="closeModalOutside(event,'modal-add-partner')">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Add Partner</div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="p-name" placeholder="e.g. Adaeze Okonkwo"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="p-phone" type="tel" placeholder="08012345678"></div>
+      <div class="form-group"><label class="form-label">Pledge (₦)</label><input class="form-input" id="p-pledge" type="number" placeholder="5000"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Start Month</label>
+      <select class="form-select" id="p-start">
+        <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="addPartner()">Save Partner</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-add-partner')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: EDIT PARTNER -->
+<div class="modal-overlay" id="modal-edit-partner" onclick="closeModalOutside(event,'modal-edit-partner')">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Edit Partner</div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="ep-name"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="ep-phone" type="tel"></div>
+      <div class="form-group"><label class="form-label">Pledge (₦)</label><input class="form-input" id="ep-pledge" type="number"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Start Month</label>
+      <select class="form-select" id="ep-start">
+        <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="saveEditPartner()">Save Changes</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-edit-partner')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: PARTNER DETAIL -->
+<div class="modal-overlay" id="modal-partner-detail" onclick="closeModalOutside(event,'modal-partner-detail')">
+  <div class="modal"><div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div class="modal-title" id="pd-name" style="margin-bottom:0;"></div>
+      <button class="btn btn-sm btn-ghost" onclick="openEditPartner()">✏️ Edit</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-soft);margin-bottom:4px;" id="pd-phone"></div>
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span class="badge badge-purple" id="pd-pledge"></span><span style="font-size:12px;color:var(--text-soft);" id="pd-balance"></span></div>
+    <div class="divider"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Tap a month to log payments</div>
+    <div class="month-grid" id="pd-months"></div>
+    <div class="divider"></div>
+    <div id="pd-month-payments"></div>
+    <div class="divider"></div>
+    <div class="pdf-btn-row">
+      <button class="btn btn-sm btn-pdf" onclick="exportPartnerPDF()">📄 Export PDF</button>
+    </div>
+    <div style="margin-top:10px;"><button class="btn btn-danger btn-sm" onclick="deletePartner()">Delete Partner</button></div>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="closeModal('modal-partner-detail')">Close</button>
+  </div>
+</div>
+
+<!-- MODAL: LOG PAYMENT -->
+<div class="modal-overlay" id="modal-log-payment" onclick="closeModalOutside(event,'modal-log-payment')">
+  <div class="modal"><div class="modal-handle"></div>
+    <div class="modal-title" id="lp-title"></div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:4px;" id="lp-pledge"></div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:14px;" id="lp-paid-so-far"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date Paid</label><input class="form-input" id="lp-date" type="date"></div>
+      <div class="form-group"><label class="form-label">Amount (₦)</label><input class="form-input" id="lp-amount" type="number" placeholder="0"></div>
+    </div>
+    <button class="btn btn-primary" onclick="logPayment()">Add Payment</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-log-payment')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: ADD MEMBER -->
+<div class="modal-overlay" id="modal-add-member" onclick="closeModalOutside(event,'modal-add-member')">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Add New Member</div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="m-name" placeholder="e.g. Chukwuemeka Bello"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-phone" type="tel" placeholder="08012345678"></div>
+      <div class="form-group"><label class="form-label">First Attended</label><input class="form-input" id="m-date" type="date"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addMember()">Save Member</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-add-member')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: MEMBER DETAIL -->
+<div class="modal-overlay" id="modal-member-detail" onclick="closeModalOutside(event,'modal-member-detail')">
+  <div class="modal"><div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div class="modal-title" id="md-name" style="margin-bottom:0;"></div>
+      <button class="btn btn-sm btn-ghost" onclick="openEditMember()">✏️ Edit</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;" id="md-info"></div>
+    <div class="form-group"><label class="form-label">Follow-up Status</label>
+      <select class="form-select" id="md-followup" onchange="updateMemberField('followup',this.value)">
+        <option value="not-contacted">Not Contacted</option><option value="contacted">Contacted</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Retention Status</label>
+      <select class="form-select" id="md-retention" onchange="updateMemberField('retention',this.value)">
+        <option value="unknown">Unknown</option>
+        <option value="returned">Returned After First Time</option>
+        <option value="member">Became a Member</option>
+        <option value="serving">Became a Serving Member</option>
+        <option value="not-returned">Did Not Return</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="md-notes" placeholder="Any notes..." onchange="updateMemberField('notes',this.value)"></div>
+    <div class="divider"></div>
+    <button class="btn btn-danger btn-sm" onclick="deleteMember()">Delete Member</button>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="closeModal('modal-member-detail')">Close</button>
+  </div>
+</div>
+
+<!-- MODAL: EDIT MEMBER -->
+<div class="modal-overlay" id="modal-edit-member" onclick="closeModalOutside(event,'modal-edit-member')">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Edit Member</div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="em-name"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="em-phone" type="tel"></div>
+      <div class="form-group"><label class="form-label">First Attended</label><input class="form-input" id="em-date" type="date"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveEditMember()">Save Changes</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-edit-member')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: LOG SERVICE -->
+<div class="modal-overlay" id="modal-add-service" onclick="closeModalOutside(event,'modal-add-service')">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Log Service</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="svc-date" type="date"></div>
+      <div class="form-group"><label class="form-label">Service Type</label>
+        <select class="form-select" id="svc-type" onchange="toggleCustomService()">
+          <option value="Sunday Service">Sunday Service</option>
+          <option value="Mid-Week Service">Mid-Week Service</option>
+          <option value="other">Other...</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="svc-custom-wrap" style="display:none;"><label class="form-label">Service Name</label><input class="form-input" id="svc-custom" placeholder="e.g. Prayer Night..."></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Adults</label><input class="form-input" id="svc-adults" type="number" placeholder="0" oninput="autoCalcTotal()"></div>
+      <div class="form-group"><label class="form-label">Kids</label><input class="form-input" id="svc-kids" type="number" placeholder="0" oninput="autoCalcTotal()"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">First Timers</label><input class="form-input" id="svc-firsttimers" type="number" placeholder="0" oninput="autoCalcTotal()"></div>
+      <div class="form-group"><label class="form-label">Visitors</label><input class="form-input" id="svc-visitors" type="number" placeholder="0" oninput="autoCalcTotal()"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Total <span style="font-size:9px;background:var(--purple-pale);color:var(--purple);padding:2px 6px;border-radius:4px;font-weight:700;">AUTO</span></label>
+      <input class="form-input" id="svc-total" type="number" placeholder="Auto-calculated or override" style="font-weight:700;">
+    </div>
+    <div class="form-group"><label class="form-label">Remarks</label><textarea class="form-textarea" id="svc-notes" placeholder="Any notes..."></textarea></div>
+    <button class="btn btn-primary" onclick="addService()">Save Record</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-add-service')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: SERVICE DETAIL -->
+<div class="modal-overlay" id="modal-service-detail" onclick="closeModalOutside(event,'modal-service-detail')">
+  <div class="modal"><div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div class="modal-title" id="svd-title" style="margin-bottom:0;"></div>
+      <button class="btn btn-sm btn-ghost" onclick="openEditService()">✏️ Edit</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;" id="svd-date"></div>
+    <div class="stat-row" id="svd-stats"></div>
+    <div id="svd-notes-wrap" style="display:none;">
+      <div class="divider"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Remarks</div>
+      <div style="font-size:14px;color:var(--text);" id="svd-notes"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="pdf-btn-row">
+      <button class="btn btn-sm btn-pdf" onclick="exportServicePDF()">📄 Export PDF</button>
+    </div>
+    <div style="margin-top:10px;"><button class="btn btn-danger btn-sm" onclick="deleteService()">Delete Record</button></div>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="closeModal('modal-service-detail')">Close</button>
+  </div>
+</div>
+
+<!-- MODAL: EDIT SERVICE -->
+<div class="modal-overlay" id="modal-edit-service" onclick="closeModalOutside(event,'modal-edit-service')">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Edit Service</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="es-date" type="date"></div>
+      <div class="form-group"><label class="form-label">Service Type</label><input class="form-input" id="es-type" placeholder="e.g. Sunday Service"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Adults</label><input class="form-input" id="es-adults" type="number" oninput="autoCalcEditTotal()"></div>
+      <div class="form-group"><label class="form-label">Kids</label><input class="form-input" id="es-kids" type="number" oninput="autoCalcEditTotal()"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">First Timers</label><input class="form-input" id="es-firsttimers" type="number" oninput="autoCalcEditTotal()"></div>
+      <div class="form-group"><label class="form-label">Visitors</label><input class="form-input" id="es-visitors" type="number" oninput="autoCalcEditTotal()"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Total</label><input class="form-input" id="es-total" type="number" style="font-weight:700;"></div>
+    <div class="form-group"><label class="form-label">Remarks</label><textarea class="form-textarea" id="es-notes"></textarea></div>
+    <button class="btn btn-primary" onclick="saveEditService()">Save Changes</button>
+    <button class="btn btn-ghost" style="margin-top:8px;" onclick="closeModal('modal-edit-service')">Cancel</button>
+  </div>
+</div>
+
+<script>
+const {jsPDF}=window.jspdf;
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MF=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const NOW=new Date(),CM=NOW.getMonth(),CY=NOW.getFullYear();
+
+function getWeekKey(d=new Date()){const j=new Date(d.getFullYear(),0,1);const w=Math.ceil(((d-j)/86400000+j.getDay()+1)/7);return d.getFullYear()+'-W'+String(w).padStart(2,'0');}
+function getWeekStart(d=new Date()){const day=d.getDay();const diff=d.getDate()-(day===0?6:day-1);return new Date(d.getFullYear(),d.getMonth(),diff);}
+
+let S={partners:[],members:[],services:[],pContacts:{},mContacts:{},churchName:'Souls Aflame Christian Centre',darkMode:false};
+let pFilter='all',mFilter='all',activePid=null,activeMid=null,activeSid=null;
+let sMonth=CM,sYear=CY,sYearView=CY,pmMonth=CM,pmYear=CY,pyYear=CY,pcMonth=CM,pcYear=CY;
+
+function save(){try{localStorage.setItem('sacc-v3',JSON.stringify(S));}catch(e){}}
+function load(){
+  try{
+    const r=localStorage.getItem('sacc-v3')||localStorage.getItem('sacc-v2');
+    if(r){const d=JSON.parse(r);S={...S,...d};if(!S.pContacts)S.pContacts={};if(!S.mContacts)S.mContacts={};}
+  }catch(e){}
+}
+
+function init(){
+  load();
+  // Apply dark mode
+  if(S.darkMode){document.body.classList.add('dark');document.getElementById('dark-toggle').checked=true;}
+  // Church name
+  const cn=S.churchName||'Souls Aflame Christian Centre';
+  document.getElementById('topbar-church-name').textContent=cn.length>22?cn.slice(0,22)+'…':cn;
+  document.getElementById('church-name-input').value=cn;
+  // Date/time
+  const h=NOW.getHours();
+  const greet=h<12?'Good morning':'h<17'?'Good afternoon':'Good evening';
+  document.getElementById('dash-greeting').textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('dash-date').textContent=NOW.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('topbar-month').textContent=NOW.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  document.getElementById('p-start').value=CM;
+  document.getElementById('svc-date').value=NOW.toISOString().split('T')[0];
+  document.getElementById('m-date').value=NOW.toISOString().split('T')[0];
+  updateWeekLabel();renderAll();
+}
+
+function renderAll(){
+  renderDashboard();
+  renderPartners();updatePartnerStats();
+  renderMembers();updateMemberStats();
+  renderStats();renderPMonthly();renderPYearly();renderPContact();renderMContact();
+}
+
+// ── SETTINGS ──
+function toggleSettings(){
+  const p=document.getElementById('settings-panel');
+  p.classList.toggle('open');
+}
+function updateChurchName(){
+  const v=document.getElementById('church-name-input').value||'Souls Aflame Christian Centre';
+  S.churchName=v;save();
+  document.getElementById('topbar-church-name').textContent=v.length>22?v.slice(0,22)+'…':v;
+}
+function toggleDark(){
+  S.darkMode=document.getElementById('dark-toggle').checked;
+  document.body.classList.toggle('dark',S.darkMode);save();
+}
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navMap={dashboard:0,partnership:1,members:2,stats:3};
+  const navItems=document.querySelectorAll('.nav-item');
+  if(navMap[page]!==undefined)navItems[navMap[page]].classList.add('active');
+  if(page==='stats')renderStats();
+  if(page==='dashboard')renderDashboard();
+}
+
+function switchPage(n,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');
+  if(n==='stats')renderStats();
+  if(n==='dashboard')renderDashboard();
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModalOutside(e,id){if(e.target.id===id)closeModal(id);}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const ps=S.partners,ms=S.members,svcs=S.services;
+  // Alerts
+  const unpaidP=ps.filter(p=>{migratePartner(p);return getPaymentStatus(p,CM,CY)!=='paid';}).length;
+  const notCalledM=ms.filter(m=>!S.mContacts[getMCKey(m.id)]).length;
+  const lastSvc=svcs[0]||null;
+  let alertsHTML='';
+  if(unpaidP>0)alertsHTML+=`<div class="alert-card" onclick="goTo('partnership')"><span class="alert-icon">🤝</span><div><div class="alert-title">Unpaid Partners</div><div class="alert-sub">Have not redeemed this month</div></div><span class="alert-count">${unpaidP}</span></div>`;
+  if(notCalledM>0)alertsHTML+=`<div class="alert-card" onclick="goTo('members')"><span class="alert-icon">📞</span><div><div class="alert-title">Members Not Called</div><div class="alert-sub">This week's pending calls</div></div><span class="alert-count">${notCalledM}</span></div>`;
+  if(!alertsHTML)alertsHTML='<div class="alert-card"><span class="alert-icon">✅</span><div><div class="alert-title">All clear</div><div class="alert-sub">Nothing needs attention right now</div></div></div>';
+  document.getElementById('dash-alerts').innerHTML=alertsHTML;
+
+  // Partnership pills
+  const paid=ps.filter(p=>getPaymentStatus(p,CM,CY)==='paid').length;
+  const partialPay=ps.filter(p=>getPaymentStatus(p,CM,CY)==='partial').length;
+  document.getElementById('dash-partner-row').innerHTML=`
+    <div class="stat-pill"><div class="stat-num">${ps.length}</div><div class="stat-lbl">Total Partners</div></div>
+    <div class="stat-pill green"><div class="stat-num">${paid}</div><div class="stat-lbl">Fully Paid</div></div>
+    <div class="stat-pill gold"><div class="stat-num">${partialPay}</div><div class="stat-lbl">Partial</div></div>
+    <div class="stat-pill red"><div class="stat-num">${ps.length-paid-partialPay}</div><div class="stat-lbl">Unpaid</div></div>`;
+
+  // Member pills
+  const serving=ms.filter(m=>m.retention==='serving').length;
+  const member=ms.filter(m=>m.retention==='member').length;
+  const returned=ms.filter(m=>m.retention==='returned').length;
+  const notRet=ms.filter(m=>m.retention==='not-returned').length;
+  document.getElementById('dash-member-row').innerHTML=`
+    <div class="stat-pill"><div class="stat-num">${ms.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-pill green"><div class="stat-num">${serving}</div><div class="stat-lbl">Serving</div></div>
+    <div class="stat-pill blue"><div class="stat-num">${member}</div><div class="stat-lbl">Member</div></div>
+    <div class="stat-pill gold"><div class="stat-num">${returned}</div><div class="stat-lbl">Returned</div></div>
+    <div class="stat-pill red"><div class="stat-num">${notRet}</div><div class="stat-lbl">Not Returned</div></div>`;
+
+  // Last service
+  if(lastSvc){
+    const d=new Date(lastSvc.date).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    document.getElementById('dash-last-service').innerHTML=`<div class="card card2" style="padding:14px;">
+      <div style="font-weight:700;font-size:14px;color:var(--text);">${lastSvc.type}</div>
+      <div style="font-size:11px;color:var(--text-soft);margin-bottom:10px;">${d}</div>
+      <div class="stat-row" style="margin-bottom:0;">
+        <div class="stat-pill blue"><div class="stat-num" style="font-size:18px;">${lastSvc.adults}</div><div class="stat-lbl">Adults</div></div>
+        <div class="stat-pill green"><div class="stat-num" style="font-size:18px;">${lastSvc.kids}</div><div class="stat-lbl">Kids</div></div>
+        <div class="stat-pill gold"><div class="stat-num" style="font-size:18px;">${lastSvc.firsttimers}</div><div class="stat-lbl">1st Timers</div></div>
+        <div class="stat-pill"><div class="stat-num" style="font-size:18px;">${lastSvc.total}</div><div class="stat-lbl">Total</div></div>
+      </div>
+    </div>`;
+  }else{document.getElementById('dash-last-service').innerHTML='<div class="empty" style="padding:16px;"><div class="empty-text">No services logged yet</div></div>';}
+
+  // This month vs last month
+  const thisMSvcs=getSvcs(CM,CY);
+  const lastM=CM===0?11:CM-1;const lastMY=CM===0?CY-1:CY;
+  const lastMSvcs=getSvcs(lastM,lastMY);
+  const thisT=sum(thisMSvcs,'total');const lastT=sum(lastMSvcs,'total');
+  const diff=thisT-lastT;
+  const diffStr=diff>0?`▲ +${diff} vs last month`:diff<0?`▼ ${diff} vs last month`:'Same as last month';
+  const diffClass=diff>0?'up':diff<0?'down':'same';
+  document.getElementById('dash-compare-row').innerHTML=`
+    <div class="stat-pill"><div class="stat-num">${thisT}</div><div class="stat-lbl">This Month</div><div class="dash-compare ${diffClass}" style="font-size:10px;margin-top:4px;">${diffStr}</div></div>
+    <div class="stat-pill blue"><div class="stat-num">${sum(thisMSvcs,'adults')}</div><div class="stat-lbl">Adults</div></div>
+    <div class="stat-pill green"><div class="stat-num">${sum(thisMSvcs,'kids')}</div><div class="stat-lbl">Kids</div></div>
+    <div class="stat-pill gold"><div class="stat-num">${sum(thisMSvcs,'firsttimers')}</div><div class="stat-lbl">1st Timers</div></div>`;
+}
+
+// ── PDF HELPERS ──
+function churchName(){return S.churchName||'Souls Aflame Christian Centre';}
+
+function makePDF(title,buildFn){
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const cname=churchName();
+  const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  // Header
+  doc.setFillColor(61,31,107);doc.rect(0,0,210,28,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(255,255,255);
+  doc.text(cname,14,12);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(200,180,255);
+  doc.text(title,14,20);
+  doc.setTextColor(150,130,200);doc.setFontSize(8);
+  doc.text('Generated: '+now,14,26);
+  doc.setDrawColor(107,63,160);doc.setLineWidth(0.5);doc.line(0,28,210,28);
+  // Content
+  doc.setTextColor(26,16,37);
+  buildFn(doc,34);
+  // Footer
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFontSize(8);doc.setTextColor(150,130,200);
+    doc.text(cname+' — '+title,14,290);
+    doc.text('Page '+i+' of '+pages,196,290,{align:'right'});
+  }
+  return doc;
+}
+
+function pdfRow(doc,y,cols,widths,isHeader=false,isTotal=false){
+  if(isHeader){doc.setFillColor(107,63,160);doc.rect(14,y-4,182,7,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);}
+  else if(isTotal){doc.setFillColor(237,232,245);doc.rect(14,y-4,182,7,'F');doc.setTextColor(61,31,107);doc.setFont('helvetica','bold');doc.setFontSize(8);}
+  else{doc.setTextColor(26,16,37);doc.setFont('helvetica','normal');doc.setFontSize(8);}
+  let x=14;
+  cols.forEach((c,i)=>{doc.text(String(c),x+1,y,{maxWidth:widths[i]-2});x+=widths[i];});
+  return y+7;
+}
+
+function sharePDF(doc,filename){
+  const blob=doc.output('blob');
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],filename,{type:'application/pdf'})]})){
+    navigator.share({files:[new File([blob],filename,{type:'application/pdf'})],title:filename}).catch(()=>{a.click();});
+  }else{a.click();}
+  toast('PDF ready ✓');
+}
+
+// ── PDF EXPORTS ──
+function exportMonthlyStatsPDF(){
+  const svcs=getSvcs(sMonth,sYear);
+  const ml=MF[sMonth]+' '+sYear;
+  const doc=makePDF('Monthly Statistics — '+ml,(doc,y)=>{
+    // Summary
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(107,63,160);
+    doc.text('Summary',14,y);y+=6;
+    const rows=[['Services',svcs.length],['Adults',sum(svcs,'adults')],['Kids',sum(svcs,'kids')],['First Timers',sum(svcs,'firsttimers')],['Visitors',sum(svcs,'visitors')],['Total Attendance',sum(svcs,'total')]];
+    rows.forEach(r=>{
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(122,104,149);doc.text(r[0],14,y);
+      doc.setFont('helvetica','bold');doc.setTextColor(26,16,37);doc.text(String(r[1]),80,y);y+=6;
+    });
+    y+=4;
+    // Table
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(107,63,160);doc.text('Service Breakdown',14,y);y+=6;
+    y=pdfRow(doc,y,['Date','Type','Adults','Kids','1st','Vis','Total'],[32,50,18,16,16,16,16],true);
+    svcs.forEach((s,i)=>{
+      if(y>270){doc.addPage();y=20;}
+      const d=new Date(s.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+      if(i%2===0){doc.setFillColor(248,246,252);doc.rect(14,y-4,182,7,'F');}
+      y=pdfRow(doc,y,[d,s.type,s.adults,s.kids,s.firsttimers,s.visitors,s.total],[32,50,18,16,16,16,16]);
+    });
+    y=pdfRow(doc,y,['TOTAL','',sum(svcs,'adults'),sum(svcs,'kids'),sum(svcs,'firsttimers'),sum(svcs,'visitors'),sum(svcs,'total')],[32,50,18,16,16,16,16],false,true);
+  });
+  sharePDF(doc,`Stats_${ml.replace(' ','_')}.pdf`);
+}
+
+function exportYearlyStatsPDF(){
+  const doc=makePDF('Yearly Statistics — '+sYearView,(doc,y)=>{
+    y=pdfRow(doc,y,['Month','Svcs','Adults','Kids','1st','Vis','Total'],[36,20,22,20,20,20,22],true);
+    let tS=0,tA=0,tK=0,tF=0,tV=0,tT=0;
+    MONTHS.forEach((m,i)=>{
+      if(y>270){doc.addPage();y=20;}
+      const svcs=getSvcs(i,sYearView);
+      const a=sum(svcs,'adults'),k=sum(svcs,'kids'),f=sum(svcs,'firsttimers'),v=sum(svcs,'visitors'),t=sum(svcs,'total');
+      tS+=svcs.length;tA+=a;tK+=k;tF+=f;tV+=v;tT+=t;
+      if(i%2===0){doc.setFillColor(248,246,252);doc.rect(14,y-4,182,7,'F');}
+      y=pdfRow(doc,y,[MF[i],svcs.length,a,k,f,v,t],[36,20,22,20,20,20,22]);
+    });
+    y=pdfRow(doc,y,['TOTAL',tS,tA,tK,tF,tV,tT],[36,20,22,20,20,20,22],false,true);
+  });
+  sharePDF(doc,`Stats_Yearly_${sYearView}.pdf`);
+}
+
+function exportPartnerPDF(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  migratePartner(p);
+  const doc=makePDF('Partnership Record — '+p.name,(doc,y)=>{
+    const info=[['Name',p.name],['Phone',p.phone||'N/A'],['Monthly Pledge','₦'+p.pledge.toLocaleString()],['Start Month',MF[p.startMonth]]];
+    info.forEach(r=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(107,63,160);doc.text(r[0],14,y);doc.setFont('helvetica','normal');doc.setTextColor(26,16,37);doc.text(r[1],60,y);y+=7;});
+    y+=4;
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(107,63,160);doc.text('Payment Record',14,y);y+=6;
+    y=pdfRow(doc,y,['Month','Status','Paid','Pledge','Outstanding'],[36,34,36,36,40],true);
+    MONTHS.forEach((m,i)=>{
+      if(i<p.startMonth)return;
+      if(y>270){doc.addPage();y=20;}
+      const paid=getMonthPaid(p,i,CY);
+      const status=getPaymentStatus(p,i,CY);
+      const out=Math.max(0,p.pledge-paid);
+      const col=status==='paid'?[46,158,107]:status==='partial'?[201,150,74]:[217,79,79];
+      const label=status==='paid'?'Full':status==='partial'?'Partial':'Unpaid';
+      if(i%2===0){doc.setFillColor(248,246,252);doc.rect(14,y-4,182,7,'F');}
+      doc.setTextColor(...col);
+      y=pdfRow(doc,y,[MF[i],label,'₦'+paid.toLocaleString(),'₦'+p.pledge.toLocaleString(),'₦'+out.toLocaleString()],[36,34,36,36,40]);
+      doc.setTextColor(26,16,37);
+    });
+    let totalOut=0;for(let i=p.startMonth;i<=CM;i++)totalOut+=Math.max(0,p.pledge-getMonthPaid(p,i,CY));
+    y+=4;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(217,79,79);
+    doc.text('Total Outstanding: '+(totalOut>0?'₦'+totalOut.toLocaleString():'Nil'),14,y);
+  });
+  sharePDF(doc,`Partner_${p.name.replace(/\s/g,'_')}.pdf`);
+}
+
+function exportPMonthlyPDF(){
+  const ps=S.partners,m=pmMonth,y2=pmYear;
+  ps.forEach(p=>migratePartner(p));
+  const active=ps.filter(p=>p.startMonth<=m);
+  const fullyPaid=active.filter(p=>getPaymentStatus(p,m,y2)==='paid');
+  const partial=active.filter(p=>getPaymentStatus(p,m,y2)==='partial');
+  const unpaid=active.filter(p=>getPaymentStatus(p,m,y2)==='unpaid');
+  const col=active.reduce((a,p)=>a+getMonthPaid(p,m,y2),0);
+  const out=active.reduce((a,p)=>a+p.pledge,0)-col;
+  const doc=makePDF('Partnership Monthly — '+MF[m]+' '+y2,(doc,y)=>{
+    const info=[['Total Partners',active.length],['Fully Paid',fullyPaid.length],['Partial',partial.length],['Unpaid',unpaid.length],['Collected','₦'+col.toLocaleString()],['Outstanding','₦'+out.toLocaleString()]];
+    info.forEach(r=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(107,63,160);doc.text(String(r[0]),14,y);doc.setFont('helvetica','normal');doc.setTextColor(26,16,37);doc.text(String(r[1]),80,y);y+=7;});
+    y+=4;
+    const renderList=(title,color,list)=>{
+      if(!list.length)return;
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...color);doc.text(title,14,y);y+=6;
+      y=pdfRow(doc,y,['Name','Phone','Paid','Pledge'],[70,50,30,32],true);
+      list.sort((a,b)=>a.name.localeCompare(b.name)).forEach((p,i)=>{
+        if(y>270){doc.addPage();y=20;}
+        if(i%2===0){doc.setFillColor(248,246,252);doc.rect(14,y-4,182,7,'F');}
+        const paid=getMonthPaid(p,m,y2);
+        y=pdfRow(doc,y,[p.name,p.phone||'N/A','₦'+paid.toLocaleString(),'₦'+p.pledge.toLocaleString()],[70,50,30,32]);
+      });
+      y+=4;
+    };
+    renderList('Fully Paid',[46,158,107],fullyPaid);
+    renderList('Partially Paid',[201,150,74],partial);
+    renderList('Unpaid',[217,79,79],unpaid);
+  });
+  sharePDF(doc,`Partnership_${MF[m]}_${y2}.pdf`);
+}
+
+function exportPYearlyPDF(){
+  const doc=makePDF('Partnership Yearly — '+pyYear,(doc,y)=>{
+    y=pdfRow(doc,y,['Month','Active','Paid','Collected','Outstanding'],[36,26,26,52,42],true);
+    S.partners;
+    MONTHS.forEach((m,i)=>{
+      if(y>270){doc.addPage();y=20;}
+      const active=S.partners.filter(p=>p.startMonth<=i);
+      const paid=active.filter(p=>p.paid.includes(i));
+      const col=paid.reduce((a,p)=>a+p.pledge,0);
+      const out=active.filter(p=>!p.paid.includes(i)).reduce((a,p)=>a+p.pledge,0);
+      if(i%2===0){doc.setFillColor(248,246,252);doc.rect(14,y-4,182,7,'F');}
+      y=pdfRow(doc,y,[MF[i],active.length,paid.length,'₦'+col.toLocaleString(),'₦'+out.toLocaleString()],[36,26,26,52,42]);
+    });
+  });
+  sharePDF(doc,`Partnership_Yearly_${pyYear}.pdf`);
+}
+
+function exportMemberContactPDF(){
+  const ms=[...S.members].sort((a,b)=>a.name.localeCompare(b.name));
+  const wk=getWeekKey();const ws=getWeekStart();const we=new Date(ws);we.setDate(we.getDate()+6);
+  const wLabel=ws.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' – '+we.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const called=ms.filter(m=>S.mContacts[getMCKey(m.id)]).length;
+  const doc=makePDF('Member Contact Tracker — Week of '+wLabel,(doc,y)=>{
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(122,104,149);
+    doc.text(`Called: ${called}   Not Called: ${ms.length-called}   Total: ${ms.length}`,14,y);y+=8;
+    y=pdfRow(doc,y,['Name','Phone','Status'],[80,60,42],true);
+    ms.forEach((m,i)=>{
+      if(y>270){doc.addPage();y=20;}
+      const ok=!!S.mContacts[getMCKey(m.id)];
+      if(i%2===0){doc.setFillColor(248,246,252);doc.rect(14,y-4,182,7,'F');}
+      doc.setTextColor(ok?46:217,ok?158:79,ok?107:79);
+      y=pdfRow(doc,y,[m.name,m.phone||'N/A',ok?'Called':'Not Called'],[80,60,42]);
+      doc.setTextColor(26,16,37);
+    });
+  });
+  sharePDF(doc,`Member_Contact_${wLabel.replace(/\s/g,'_').replace(/–/g,'-')}.pdf`);
+}
+
+function exportServicePDF(){
+  const s=S.services.find(x=>x.id===activeSid);if(!s)return;
+  const d=new Date(s.date).toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const doc=makePDF('Service Record — '+s.type,(doc,y)=>{
+    const rows=[['Date',d],['Service',s.type],['Adults',s.adults],['Kids',s.kids],['First Timers',s.firsttimers],['Visitors',s.visitors],['Total',s.total]];
+    rows.forEach(r=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(107,63,160);doc.text(String(r[0]),14,y);doc.setFont('helvetica','normal');doc.setTextColor(26,16,37);doc.text(String(r[1]),70,y);y+=7;});
+    if(s.notes){y+=4;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(107,63,160);doc.text('Remarks',14,y);y+=6;doc.setFont('helvetica','normal');doc.setTextColor(26,16,37);doc.text(s.notes,14,y,{maxWidth:182});}
+  });
+  sharePDF(doc,`Service_${new Date(s.date).toISOString().split('T')[0]}.pdf`);
+}
+
+// ── PARTNER TABS ──
+function switchPartnerTab(tab,btn){
+  ['pt-records','pt-monthly','pt-yearly','pt-contact'].forEach(id=>document.getElementById(id).style.display='none');
+  document.querySelectorAll('#ptabs .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pt-'+tab).style.display='block';btn.classList.add('active');
+  if(tab==='monthly')renderPMonthly();
+  if(tab==='yearly')renderPYearly();
+  if(tab==='contact')renderPContact();
+}
+
+// ── PAYMENT HELPERS ──
+function pmKey(month,year){return `${month}_${year}`;}
+function getPayments(p,month,year){return (p.payments&&p.payments[pmKey(month,year)])||[];}
+function getMonthPaid(p,month,year){return getPayments(p,month,year).reduce((a,x)=>a+(x.amount||0),0);}
+function getPaymentStatus(p,month,year){
+  const paid=getMonthPaid(p,month,year);
+  if(paid<=0)return 'unpaid';
+  if(paid>=p.pledge)return 'paid';
+  return 'partial';
+}
+function migratePartner(p){
+  if(!p.payments)p.payments={};
+  if(p.paid&&p.paid.length){
+    p.paid.forEach(m=>{
+      const k=pmKey(m,CY);
+      if(!p.payments[k])p.payments[k]=[{date:new Date(CY,m,1).toISOString().split('T')[0],amount:p.pledge}];
+    });
+    delete p.paid;
+  }
+}
+let activePMonth=CM,activePYear=CY;
+
+// ── PARTNER RECORDS ──
+function addPartner(){
+  const name=document.getElementById('p-name').value.trim();
+  const phone=document.getElementById('p-phone').value.trim();
+  const pledge=parseFloat(document.getElementById('p-pledge').value)||0;
+  const startMonth=parseInt(document.getElementById('p-start').value);
+  if(!name){toast('Please enter a name');return;}
+  S.partners.push({id:Date.now(),name,phone,pledge,startMonth,payments:{}});
+  save();renderAll();closeModal('modal-add-partner');
+  ['p-name','p-phone','p-pledge'].forEach(id=>document.getElementById(id).value='');
+  toast('Partner added ✓');
+}
+
+function openEditPartner(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  document.getElementById('ep-name').value=p.name;
+  document.getElementById('ep-phone').value=p.phone||'';
+  document.getElementById('ep-pledge').value=p.pledge;
+  document.getElementById('ep-start').value=p.startMonth;
+  closeModal('modal-partner-detail');openModal('modal-edit-partner');
+}
+function saveEditPartner(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  p.name=document.getElementById('ep-name').value.trim()||p.name;
+  p.phone=document.getElementById('ep-phone').value.trim();
+  p.pledge=parseFloat(document.getElementById('ep-pledge').value)||p.pledge;
+  p.startMonth=parseInt(document.getElementById('ep-start').value);
+  save();renderAll();closeModal('modal-edit-partner');toast('Partner updated ✓');
+}
+
+function deletePartner(){
+  if(!confirm('Delete this partner?'))return;
+  S.partners=S.partners.filter(p=>p.id!==activePid);
+  save();renderAll();closeModal('modal-partner-detail');toast('Deleted');
+}
+
+function openPartnerDetail(id){
+  const p=S.partners.find(x=>x.id===id);if(!p)return;
+  migratePartner(p);
+  activePid=id;activePMonth=CM;activePYear=CY;
+  refreshPartnerDetail();
+  openModal('modal-partner-detail');
+}
+
+function refreshPartnerDetail(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  document.getElementById('pd-name').textContent=p.name;
+  document.getElementById('pd-phone').textContent=p.phone||'No phone recorded';
+  document.getElementById('pd-pledge').textContent='₦'+p.pledge.toLocaleString()+'/month';
+  let totalOut=0;
+  for(let i=p.startMonth;i<=CM;i++){totalOut+=Math.max(0,p.pledge-getMonthPaid(p,i,CY));}
+  document.getElementById('pd-balance').textContent=totalOut>0?'Outstanding: ₦'+totalOut.toLocaleString():'✓ Fully up to date';
+  const grid=document.getElementById('pd-months');grid.innerHTML='';
+  MONTHS.forEach((m,i)=>{
+    if(i<p.startMonth)return;
+    const status=getPaymentStatus(p,i,CY);
+    const btn=document.createElement('button');
+    btn.className='month-btn'+(status==='paid'?' paid':status==='partial'?' partial':'')+(i===CM?' current':'');
+    btn.textContent=m;
+    btn.onclick=()=>{activePMonth=i;activePYear=CY;refreshPaymentSection();};
+    grid.appendChild(btn);
+  });
+  refreshPaymentSection();
+}
+
+function refreshPaymentSection(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  const payments=getPayments(p,activePMonth,activePYear);
+  const totalPaid=payments.reduce((a,x)=>a+(x.amount||0),0);
+  const remaining=Math.max(0,p.pledge-totalPaid);
+  const status=getPaymentStatus(p,activePMonth,activePYear);
+  const statusBadge=status==='paid'?'badge-green':status==='partial'?'badge-orange':'badge-red';
+  const statusLabel=status==='paid'?'Fully Paid':status==='partial'?'Partially Paid':'Unpaid';
+  let html=`<div style="margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-weight:700;font-size:14px;color:var(--text);">${MF[activePMonth]} ${activePYear}</div>
+      <span class="badge ${statusBadge}">${statusLabel}</span>
+    </div>
+    <div style="display:flex;gap:16px;font-size:12px;color:var(--text-soft);flex-wrap:wrap;">
+      <span>Pledge: <strong style="color:var(--purple);">₦${p.pledge.toLocaleString()}</strong></span>
+      <span>Paid: <strong style="color:var(--green);">₦${totalPaid.toLocaleString()}</strong></span>
+      <span>Left: <strong style="color:var(--red);">₦${remaining.toLocaleString()}</strong></span>
+    </div>
+  </div>`;
+  if(payments.length){
+    html+=`<div style="background:var(--card2);border-radius:10px;padding:10px 12px;margin-bottom:10px;">`;
+    payments.forEach((pay,i)=>{
+      const d=new Date(pay.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+      html+=`<div class="payment-entry"><div><div style="font-weight:600;font-size:13px;">₦${pay.amount.toLocaleString()}</div><div style="font-size:11px;color:var(--text-soft);">${d}</div></div><button class="payment-del" onclick="deletePayment(${i})">🗑</button></div>`;
+    });
+    html+=`</div>`;
+  }else{
+    html+=`<div style="font-size:12px;color:var(--text-soft);margin-bottom:10px;font-style:italic;">No payments logged for this month yet</div>`;
+  }
+  html+=`<button class="btn btn-sm btn-green" onclick="openLogPayment()" style="width:100%;">+ Log Payment for ${MF[activePMonth]}</button>`;
+  document.getElementById('pd-month-payments').innerHTML=html;
+}
+
+function openLogPayment(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  const totalPaid=getMonthPaid(p,activePMonth,activePYear);
+  const remaining=Math.max(0,p.pledge-totalPaid);
+  document.getElementById('lp-title').textContent='Log Payment — '+MF[activePMonth]+' '+activePYear;
+  document.getElementById('lp-pledge').textContent='Monthly Pledge: ₦'+p.pledge.toLocaleString();
+  document.getElementById('lp-paid-so-far').textContent='Paid so far: ₦'+totalPaid.toLocaleString()+' · Remaining: ₦'+remaining.toLocaleString();
+  document.getElementById('lp-date').value=NOW.toISOString().split('T')[0];
+  document.getElementById('lp-amount').value='';
+  openModal('modal-log-payment');
+}
+
+function logPayment(){
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  const date=document.getElementById('lp-date').value;
+  const amount=parseFloat(document.getElementById('lp-amount').value)||0;
+  if(!amount){toast('Enter an amount');return;}
+  if(!p.payments)p.payments={};
+  const k=pmKey(activePMonth,activePYear);
+  if(!p.payments[k])p.payments[k]=[];
+  p.payments[k].push({date,amount});
+  save();closeModal('modal-log-payment');refreshPartnerDetail();
+  updatePartnerStats();renderPartners();renderPMonthly();renderPYearly();renderDashboard();
+  toast('Payment logged ✓');
+}
+
+function deletePayment(index){
+  if(!confirm('Remove this payment?'))return;
+  const p=S.partners.find(x=>x.id===activePid);if(!p)return;
+  const k=pmKey(activePMonth,activePYear);
+  if(p.payments&&p.payments[k]){
+    p.payments[k].splice(index,1);
+    if(!p.payments[k].length)delete p.payments[k];
+  }
+  save();refreshPartnerDetail();updatePartnerStats();renderPartners();renderPMonthly();renderPYearly();renderDashboard();
+  toast('Payment removed');
+}
+
+function updatePartnerStats(){
+  const total=S.partners.length;let paid=0,partial=0,unpaid=0;
+  S.partners.forEach(p=>{migratePartner(p);const s=getPaymentStatus(p,CM,CY);if(s==='paid')paid++;else if(s==='partial')partial++;else unpaid++;});
+  document.getElementById('ps-total').textContent=total;
+  document.getElementById('ps-paid').textContent=paid;
+  document.getElementById('ps-partial').textContent=partial;
+  document.getElementById('ps-unpaid').textContent=unpaid;
+}
+
+function filterPartners(f,btn){
+  pFilter=f;document.querySelectorAll('#pfilter-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderPartners();
+}
+
+function renderPartners(){
+  const q=document.getElementById('partner-search').value.toLowerCase();
+  let list=S.partners.filter(p=>p.name.toLowerCase().includes(q)||(p.phone||'').includes(q));
+  list.forEach(p=>migratePartner(p));
+  if(pFilter==='paid')list=list.filter(p=>getPaymentStatus(p,CM,CY)==='paid');
+  else if(pFilter==='partial')list=list.filter(p=>getPaymentStatus(p,CM,CY)==='partial');
+  else if(pFilter==='unpaid')list=list.filter(p=>getPaymentStatus(p,CM,CY)==='unpaid');
+  list.sort((a,b)=>a.name.localeCompare(b.name));
+  const el=document.getElementById('partner-list');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">🤝</div><div class="empty-text">No partners found</div></div>';return;}
+  el.innerHTML=list.map(p=>{
+    const status=getPaymentStatus(p,CM,CY);
+    const badgeClass=status==='paid'?'badge-green':status==='partial'?'badge-orange':'badge-red';
+    const badgeLabel=status==='paid'?'Fully Paid':status==='partial'?'Partial':'Unpaid';
+    const paid=getMonthPaid(p,CM,CY);
+    return `<div class="list-item" onclick="openPartnerDetail(${p.id})" style="cursor:pointer;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="list-item-name">${p.name}</div><span class="badge ${badgeClass}">${badgeLabel}</span></div>
+      <div class="list-item-sub">${p.phone||'No phone'} · ₦${p.pledge.toLocaleString()}/mo</div>
+      <div class="list-item-sub" style="margin-top:4px;">This month: ₦${paid.toLocaleString()} paid · Tap to view</div>
+    </div>`;
+  }).join('');
+}
+
+// ── PARTNER MONTHLY ──
+function changePartnerMonth(d){pmMonth+=d;if(pmMonth>11){pmMonth=0;pmYear++;}if(pmMonth<0){pmMonth=11;pmYear--;}renderPMonthly();}
+function renderPMonthly(){
+  document.getElementById('pm-label').textContent=MF[pmMonth]+' '+pmYear;
+  const ps=S.partners;ps.forEach(p=>migratePartner(p));
+  const active=ps.filter(p=>p.startMonth<=pmMonth);
+  const fullyPaid=active.filter(p=>getPaymentStatus(p,pmMonth,pmYear)==='paid');
+  const partial=active.filter(p=>getPaymentStatus(p,pmMonth,pmYear)==='partial');
+  const unpaid=active.filter(p=>getPaymentStatus(p,pmMonth,pmYear)==='unpaid');
+  const col=active.reduce((a,p)=>a+getMonthPaid(p,pmMonth,pmYear),0);
+  const totP=active.reduce((a,p)=>a+p.pledge,0);
+  const out=totP-col;
+  let html=`<div class="stat-row">
+    <div class="stat-pill"><div class="stat-num">${active.length}</div><div class="stat-lbl">Active</div></div>
+    <div class="stat-pill green"><div class="stat-num">${fullyPaid.length}</div><div class="stat-lbl">Fully Paid</div></div>
+    <div class="stat-pill gold"><div class="stat-num">${partial.length}</div><div class="stat-lbl">Partial</div></div>
+    <div class="stat-pill red"><div class="stat-num">${unpaid.length}</div><div class="stat-lbl">Unpaid</div></div>
+  </div>
+  <div class="p-stat-section"><div class="p-stat-title">Financial Summary</div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-soft);">Total Pledge</span><span style="font-weight:700;color:var(--purple);">₦${totP.toLocaleString()}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text-soft);">Collected</span><span style="font-weight:700;color:var(--green);">₦${col.toLocaleString()}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;"><span style="color:var(--text-soft);">Outstanding</span><span style="font-weight:700;color:var(--red);">₦${out.toLocaleString()}</span></div>
+  </div>`;
+  const showList=(title,color,list)=>{
+    if(!list.length)return '';
+    return `<div class="p-stat-section"><div class="p-stat-title" style="color:${color};">${title} (${list.length})</div>${list.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const paid=getMonthPaid(p,pmMonth,pmYear);return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span>${p.name}</span><span style="font-weight:700;color:${color};">₦${paid.toLocaleString()} / ₦${p.pledge.toLocaleString()}</span></div>`;}).join('')}</div>`;
+  };
+  html+=showList('✓ Fully Paid','var(--green)',fullyPaid);
+  html+=showList('◑ Partial','var(--gold)',partial);
+  html+=showList('✗ Unpaid','var(--red)',unpaid);
+  html+=`<div class="pdf-btn-row"><button class="btn btn-sm btn-pdf" onclick="exportPMonthlyPDF()">📄 Export PDF</button></div>`;
+  document.getElementById('pm-content').innerHTML=html;
+}
+
+// ── PARTNER YEARLY ──
+function changePartnerYear(d){pyYear+=d;renderPYearly();}
+function renderPYearly(){
+  document.getElementById('py-label').textContent='Year '+pyYear;
+  let rows='';
+  S.partners.forEach(p=>migratePartner(p));
+  MONTHS.forEach((m,i)=>{
+    const active=S.partners.filter(p=>p.startMonth<=i);
+    const col=active.reduce((a,p)=>a+getMonthPaid(p,i,pyYear),0);
+    const totP=active.reduce((a,p)=>a+p.pledge,0);
+    const out=totP-col;
+    const fullyPaid=active.filter(p=>getPaymentStatus(p,i,pyYear)==='paid').length;
+    const cur=i===CM&&pyYear===CY;
+    rows+=`<tr${cur?' class="cur-row"':''}><td>${MF[i]}</td><td>${active.length}</td><td style="color:${fullyPaid===active.length&&active.length>0?'var(--green)':'var(--red)'}">${fullyPaid}</td><td>₦${col.toLocaleString()}</td><td>₦${out.toLocaleString()}</td></tr>`;
+  });
+  document.getElementById('py-content').innerHTML=`<div class="yr-table-wrap"><table class="yr-table"><thead><tr><th>Month</th><th>Active</th><th>Full Paid</th><th>Collected</th><th>Outstanding</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="pdf-btn-row" style="margin-top:12px;"><button class="btn btn-sm btn-pdf" onclick="exportPYearlyPDF()">📄 Export PDF</button></div>`;
+}
+
+// ── PARTNER CONTACT ──
+function changePartnerContactMonth(d){pcMonth+=d;if(pcMonth>11){pcMonth=0;pcYear++;}if(pcMonth<0){pcMonth=11;pcYear--;}renderPContact();}
+function getPCKey(id){return `pc_${id}_${pcYear}_${pcMonth}`;}
+function togglePContact(id){S.pContacts[getPCKey(id)]=!S.pContacts[getPCKey(id)];save();renderPContact();}
+function renderPContact(){
+  document.getElementById('pc-label').textContent=MF[pcMonth]+' '+pcYear;
+  const ps=[...S.partners].sort((a,b)=>a.name.localeCompare(b.name));
+  const called=ps.filter(p=>S.pContacts[getPCKey(p.id)]).length;
+  document.getElementById('pc-stats').innerHTML=`<div class="stat-pill"><div class="stat-num">${ps.length}</div><div class="stat-lbl">Total</div></div><div class="stat-pill green"><div class="stat-num">${called}</div><div class="stat-lbl">Called</div></div><div class="stat-pill red"><div class="stat-num">${ps.length-called}</div><div class="stat-lbl">Not Called</div></div>`;
+  if(!ps.length){document.getElementById('partner-contact-list').innerHTML='<div class="empty"><div class="empty-icon">📞</div><div class="empty-text">No partners yet</div></div>';return;}
+  document.getElementById('partner-contact-list').innerHTML=ps.map(p=>{const ok=!!S.pContacts[getPCKey(p.id)];return `<div class="contact-item"><div><div class="contact-name">${p.name}</div><div class="contact-sub">${p.phone||'No phone'} · ₦${p.pledge.toLocaleString()}/mo</div></div><button class="contact-toggle ${ok?'called':'not-called'}" onclick="togglePContact(${p.id})">${ok?'✓ Called':'Call'}</button></div>`;}).join('');
+}
+
+// ── MEMBER TABS ──
+function switchMemberTab(tab,btn){
+  document.getElementById('mt-records').style.display=tab==='records'?'block':'none';
+  document.getElementById('mt-contact').style.display=tab==='contact'?'block':'none';
+  document.querySelectorAll('#mtabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');if(tab==='contact')renderMContact();
+}
+
+// ── MEMBER RECORDS ──
+function addMember(){
+  const name=document.getElementById('m-name').value.trim();
+  const phone=document.getElementById('m-phone').value.trim();
+  const date=document.getElementById('m-date').value;
+  if(!name){toast('Please enter a name');return;}
+  S.members.push({id:Date.now(),name,phone,date,followup:'not-contacted',retention:'unknown',notes:''});
+  save();renderAll();closeModal('modal-add-member');
+  ['m-name','m-phone'].forEach(id=>document.getElementById(id).value='');
+  toast('Member added ✓');
+}
+
+function openEditMember(){
+  const m=S.members.find(x=>x.id===activeMid);if(!m)return;
+  document.getElementById('em-name').value=m.name;
+  document.getElementById('em-phone').value=m.phone||'';
+  document.getElementById('em-date').value=m.date||'';
+  closeModal('modal-member-detail');openModal('modal-edit-member');
+}
+function saveEditMember(){
+  const m=S.members.find(x=>x.id===activeMid);if(!m)return;
+  m.name=document.getElementById('em-name').value.trim()||m.name;
+  m.phone=document.getElementById('em-phone').value.trim();
+  m.date=document.getElementById('em-date').value;
+  save();renderAll();closeModal('modal-edit-member');toast('Member updated ✓');
+}
+
+function deleteMember(){
+  if(!confirm('Delete this member?'))return;
+  S.members=S.members.filter(x=>x.id!==activeMid);
+  save();renderAll();closeModal('modal-member-detail');toast('Deleted');
+}
+
+function openMemberDetail(id){
+  const m=S.members.find(x=>x.id===id);if(!m)return;
+  activeMid=id;
+  document.getElementById('md-name').textContent=m.name;
+  const ds=m.date?new Date(m.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';
+  document.getElementById('md-info').textContent=(m.phone||'No phone')+(ds?' · First: '+ds:'');
+  document.getElementById('md-followup').value=m.followup;
+  document.getElementById('md-retention').value=m.retention||'unknown';
+  document.getElementById('md-notes').value=m.notes||'';
+  openModal('modal-member-detail');
+}
+
+function updateMemberField(field,value){
+  const m=S.members.find(x=>x.id===activeMid);if(!m)return;
+  m[field]=value;save();renderMembers();updateMemberStats();renderDashboard();
+}
+
+function updateMemberStats(){
+  document.getElementById('ms-total').textContent=S.members.length;
+  document.getElementById('ms-serving').textContent=S.members.filter(m=>m.retention==='serving').length;
+  document.getElementById('ms-member').textContent=S.members.filter(m=>m.retention==='member').length;
+  document.getElementById('ms-returned').textContent=S.members.filter(m=>m.retention==='returned').length;
+  document.getElementById('ms-notreturned').textContent=S.members.filter(m=>m.retention==='not-returned').length;
+  document.getElementById('ms-pending').textContent=S.members.filter(m=>m.followup==='not-contacted').length;
+}
+
+function filterMembers(f,btn){
+  mFilter=f;document.querySelectorAll('#mfilter-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderMembers();
+}
+
+const RLABELS={unknown:'Unknown',returned:'Returned',member:'Member',serving:'Serving','not-returned':'Not Returned'};
+const RBADGES={unknown:'badge-grey',returned:'badge-gold',member:'badge-blue',serving:'badge-green','not-returned':'badge-red'};
+
+function renderMembers(){
+  const q=document.getElementById('member-search').value.toLowerCase();
+  let list=S.members.filter(m=>m.name.toLowerCase().includes(q)||(m.phone||'').includes(q));
+  if(mFilter==='serving')list=list.filter(m=>m.retention==='serving');
+  else if(mFilter==='member')list=list.filter(m=>m.retention==='member');
+  else if(mFilter==='returned')list=list.filter(m=>m.retention==='returned');
+  else if(mFilter==='not-returned')list=list.filter(m=>m.retention==='not-returned');
+  list.sort((a,b)=>a.name.localeCompare(b.name));
+  const el=document.getElementById('member-list');
+  if(!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">No members found</div></div>';return;}
+  el.innerHTML=list.map(m=>{
+    const r=m.retention||'unknown';
+    const ds=m.date?new Date(m.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):'';
+    return `<div class="list-item" onclick="openMemberDetail(${m.id})" style="cursor:pointer;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="list-item-name">${m.name}</div><span class="badge ${RBADGES[r]||'badge-grey'}">${RLABELS[r]||'Unknown'}</span></div>
+      <div class="list-item-sub">${m.phone||'No phone'}${ds?' · '+ds:''}</div>
+      <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="badge ${m.followup==='contacted'?'badge-gold':'badge-purple'}">${m.followup==='contacted'?'Contacted':'Not Contacted'}</span>
+        ${m.notes?`<span style="font-size:11px;color:var(--text-soft);">📝 ${m.notes.slice(0,28)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MEMBER CONTACT ──
+function updateWeekLabel(){
+  const ws=getWeekStart();const we=new Date(ws);we.setDate(we.getDate()+6);
+  document.getElementById('mc-week-label').textContent=ws.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' – '+we.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function getMCKey(id){return `mc_${id}_${getWeekKey()}`;}
+function toggleMContact(id){S.mContacts[getMCKey(id)]=!S.mContacts[getMCKey(id)];save();renderMContact();renderDashboard();}
+function renderMContact(){
+  const ms=[...S.members].sort((a,b)=>a.name.localeCompare(b.name));
+  const called=ms.filter(m=>S.mContacts[getMCKey(m.id)]).length;
+  document.getElementById('mc-stats').innerHTML=`<div class="stat-pill"><div class="stat-num">${ms.length}</div><div class="stat-lbl">Total</div></div><div class="stat-pill green"><div class="stat-num">${called}</div><div class="stat-lbl">Called</div></div><div class="stat-pill red"><div class="stat-num">${ms.length-called}</div><div class="stat-lbl">Not Called</div></div>`;
+  if(!ms.length){document.getElementById('member-contact-list').innerHTML='<div class="empty"><div class="empty-icon">📞</div><div class="empty-text">No members yet</div></div>';return;}
+  document.getElementById('member-contact-list').innerHTML=ms.map(m=>{const ok=!!S.mContacts[getMCKey(m.id)];return `<div class="contact-item"><div><div class="contact-name">${m.name}</div><div class="contact-sub">${m.phone||'No phone'}</div></div><button class="contact-toggle ${ok?'called':'not-called'}" onclick="toggleMContact(${m.id})">${ok?'✓ Called':'Call'}</button></div>`;}).join('');
+}
+
+// ── STATS TABS ──
+function switchStatsTab(tab,btn){
+  document.getElementById('st-monthly').style.display=tab==='monthly'?'block':'none';
+  document.getElementById('st-yearly').style.display=tab==='yearly'?'block':'none';
+  document.querySelectorAll('#stabs .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');if(tab==='yearly')renderYearly();
+}
+
+function toggleCustomService(){document.getElementById('svc-custom-wrap').style.display=document.getElementById('svc-type').value==='other'?'block':'none';}
+function autoCalcTotal(){const g=id=>parseInt(document.getElementById(id).value)||0;document.getElementById('svc-total').value=g('svc-adults')+g('svc-kids')+g('svc-firsttimers')+g('svc-visitors')||'';}
+function autoCalcEditTotal(){const g=id=>parseInt(document.getElementById(id).value)||0;document.getElementById('es-total').value=g('es-adults')+g('es-kids')+g('es-firsttimers')+g('es-visitors')||'';}
+
+function addService(){
+  const date=document.getElementById('svc-date').value;
+  const tv=document.getElementById('svc-type').value;
+  const type=tv==='other'?(document.getElementById('svc-custom').value.trim()||'Other Service'):tv;
+  const adults=parseInt(document.getElementById('svc-adults').value)||0;
+  const kids=parseInt(document.getElementById('svc-kids').value)||0;
+  const ft=parseInt(document.getElementById('svc-firsttimers').value)||0;
+  const vis=parseInt(document.getElementById('svc-visitors').value)||0;
+  const ti=parseInt(document.getElementById('svc-total').value);
+  const total=isNaN(ti)?(adults+kids+ft+vis):ti;
+  const notes=document.getElementById('svc-notes').value.trim();
+  if(!date){toast('Please select a date');return;}
+  const d=new Date(date);
+  S.services.push({id:Date.now(),date,month:d.getMonth(),year:d.getFullYear(),type,adults,kids,firsttimers:ft,visitors:vis,total,notes});
+  S.services.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  save();renderStats();renderDashboard();
+  closeModal('modal-add-service');
+  ['svc-adults','svc-kids','svc-firsttimers','svc-visitors','svc-total','svc-notes','svc-custom'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('svc-type').value='Sunday Service';document.getElementById('svc-custom-wrap').style.display='none';
+  toast('Service logged ✓');
+}
+
+function openEditService(){
+  const s=S.services.find(x=>x.id===activeSid);if(!s)return;
+  document.getElementById('es-date').value=s.date;
+  document.getElementById('es-type').value=s.type;
+  document.getElementById('es-adults').value=s.adults;
+  document.getElementById('es-kids').value=s.kids;
+  document.getElementById('es-firsttimers').value=s.firsttimers;
+  document.getElementById('es-visitors').value=s.visitors;
+  document.getElementById('es-total').value=s.total;
+  document.getElementById('es-notes').value=s.notes||'';
+  closeModal('modal-service-detail');openModal('modal-edit-service');
+}
+function saveEditService(){
+  const s=S.services.find(x=>x.id===activeSid);if(!s)return;
+  const date=document.getElementById('es-date').value;
+  const d=new Date(date);
+  s.date=date;s.month=d.getMonth();s.year=d.getFullYear();
+  s.type=document.getElementById('es-type').value.trim()||s.type;
+  s.adults=parseInt(document.getElementById('es-adults').value)||0;
+  s.kids=parseInt(document.getElementById('es-kids').value)||0;
+  s.firsttimers=parseInt(document.getElementById('es-firsttimers').value)||0;
+  s.visitors=parseInt(document.getElementById('es-visitors').value)||0;
+  s.total=parseInt(document.getElementById('es-total').value)||(s.adults+s.kids+s.firsttimers+s.visitors);
+  s.notes=document.getElementById('es-notes').value.trim();
+  S.services.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  save();renderStats();renderDashboard();closeModal('modal-edit-service');toast('Service updated ✓');
+}
+
+function deleteService(){
+  if(!confirm('Delete this record?'))return;
+  S.services=S.services.filter(s=>s.id!==activeSid);save();renderStats();renderDashboard();closeModal('modal-service-detail');toast('Deleted');
+}
+
+function openServiceDetail(id){
+  const s=S.services.find(x=>x.id===id);if(!s)return;activeSid=id;
+  document.getElementById('svd-title').textContent=s.type;
+  document.getElementById('svd-date').textContent=new Date(s.date).toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('svd-stats').innerHTML=`<div class="stat-pill blue"><div class="stat-num">${s.adults}</div><div class="stat-lbl">Adults</div></div><div class="stat-pill green"><div class="stat-num">${s.kids}</div><div class="stat-lbl">Kids</div></div><div class="stat-pill gold"><div class="stat-num">${s.firsttimers}</div><div class="stat-lbl">1st Timers</div></div><div class="stat-pill red"><div class="stat-num">${s.visitors}</div><div class="stat-lbl">Visitors</div></div><div class="stat-pill"><div class="stat-num">${s.total}</div><div class="stat-lbl">Total</div></div>`;
+  const nw=document.getElementById('svd-notes-wrap');
+  if(s.notes){nw.style.display='block';document.getElementById('svd-notes').textContent=s.notes;}else{nw.style.display='none';}
+  openModal('modal-service-detail');
+}
+
+function changeStatsMonth(d){sMonth+=d;if(sMonth>11){sMonth=0;sYear++;}if(sMonth<0){sMonth=11;sYear--;}renderStats();}
+function changeStatsYear(d){sYearView+=d;renderYearly();}
+function getSvcs(m,y){return S.services.filter(s=>s.month===m&&s.year===y);}
+const sum=(arr,k)=>arr.reduce((a,s)=>a+(s[k]||0),0);
+
+function renderStats(){
+  document.getElementById('stats-month-label').textContent=MF[sMonth]+' '+sYear;
+  const svcs=getSvcs(sMonth,sYear);
+  document.getElementById('st-services').textContent=svcs.length;
+  document.getElementById('st-adults').textContent=sum(svcs,'adults');
+  document.getElementById('st-kids').textContent=sum(svcs,'kids');
+  document.getElementById('st-firsttimers').textContent=sum(svcs,'firsttimers');
+  document.getElementById('st-visitors').textContent=sum(svcs,'visitors');
+  document.getElementById('st-total-att').textContent=sum(svcs,'total');
+  const el=document.getElementById('service-list');
+  if(!svcs.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No services logged for this month</div></div>';return;}
+  el.innerHTML=svcs.map(s=>`<div class="svc-card" onclick="openServiceDetail(${s.id})">
+    <div class="svc-card-top"><div><div class="svc-date">${new Date(s.date).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'})}</div><div class="svc-type">${s.type}</div></div><span class="badge badge-purple">${s.total} total</span></div>
+    <div class="svc-nums"><span class="svc-num">Adults: <span>${s.adults}</span></span><span class="svc-num">Kids: <span>${s.kids}</span></span><span class="svc-num">1st: <span>${s.firsttimers}</span></span><span class="svc-num">Vis: <span>${s.visitors}</span></span></div>
+    ${s.notes?`<div style="font-size:11px;color:var(--text-soft);margin-top:6px;">📝 ${s.notes.slice(0,50)}${s.notes.length>50?'…':''}</div>`:''}
+  </div>`).join('');
+}
+
+function renderYearly(){
+  document.getElementById('stats-year-label').textContent='Year '+sYearView;
+  let tS=0,tA=0,tK=0,tF=0,tV=0,tT=0;
+  const rows=MONTHS.map((m,i)=>{
+    const svcs=getSvcs(i,sYearView);
+    const a=sum(svcs,'adults'),k=sum(svcs,'kids'),f=sum(svcs,'firsttimers'),v=sum(svcs,'visitors'),t=sum(svcs,'total');
+    tS+=svcs.length;tA+=a;tK+=k;tF+=f;tV+=v;tT+=t;
+    const cur=i===CM&&sYearView===CY;
+    return `<tr${cur?' class="cur-row"':''}><td>${MF[i]}</td><td>${svcs.length}</td><td>${a}</td><td>${k}</td><td>${f}</td><td>${v}</td><td style="font-weight:700;">${t}</td></tr>`;
+  }).join('');
+  document.getElementById('yearly-table').innerHTML=`<thead><tr><th>Month</th><th>Svcs</th><th>Adults</th><th>Kids</th><th>1st</th><th>Vis</th><th>Total</th></tr></thead><tbody>${rows}<tr class="totals-row"><td>TOTAL</td><td>${tS}</td><td>${tA}</td><td>${tK}</td><td>${tF}</td><td>${tV}</td><td>${tT}</td></tr></tbody>`;
+}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// ── BACK BUTTON HANDLER ──
+const pageHistory=[];
+function pushHistory(page){
+  if(pageHistory[pageHistory.length-1]!==page)pageHistory.push(page);
+}
+
+// Override switchPage to track history
+const _origSwitchPage=switchPage;
+window.switchPage=function(n,btn){
+  pushHistory(n);_origSwitchPage(n,btn);
+};
+window.goTo=function(page){
+  pushHistory(page);
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const navMap={dashboard:0,partnership:1,members:2,stats:3};
+  const navItems=document.querySelectorAll('.nav-item');
+  if(navMap[page]!==undefined)navItems[navMap[page]].classList.add('active');
+  if(page==='stats')renderStats();
+  if(page==='dashboard')renderDashboard();
+};
+
+// Push initial state
+window.history.pushState({page:'dashboard'},'');
+pushHistory('dashboard');
+
+window.addEventListener('popstate',function(e){
+  // If a modal is open, close it first
+  const openModal=document.querySelector('.modal-overlay.open');
+  if(openModal){openModal.classList.remove('open');window.history.pushState({},'');return;}
+  // If settings panel is open, close it
+  const settings=document.getElementById('settings-panel');
+  if(settings.classList.contains('open')){settings.classList.remove('open');window.history.pushState({},'');return;}
+  // Navigate to previous page in history
+  pageHistory.pop(); // remove current
+  const prev=pageHistory[pageHistory.length-1];
+  if(prev){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    document.getElementById('page-'+prev).classList.add('active');
+    const navMap={dashboard:0,partnership:1,members:2,stats:3};
+    const navItems=document.querySelectorAll('.nav-item');
+    if(navMap[prev]!==undefined)navItems[navMap[prev]].classList.add('active');
+    window.history.pushState({},'');
+  }else{
+    // Already at root — let system handle (minimize app)
+    window.history.back();
+  }
+});
+
+// Keep a pushState ahead so popstate always fires
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>window.history.pushState({},''));
+});
+
+init();
+</script>
+</body>
+</html>
